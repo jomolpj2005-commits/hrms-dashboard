@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Salary Slip</title>
+
+    <meta
+        name="csrf-token"
+        content="{{ frappe.session.csrf_token }}"
+    >
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+
+            margin: 0;
+            padding: 35px 45px;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        .page-container {
+
+            max-width: 1250px;
+            margin: auto;
+        }
+
+        .header {
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            margin-bottom: 25px;
+        }
+
+        .header h1 {
+
+            margin: 0;
+
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .back-button {
+
+            border: none;
+
+            padding: 11px 18px;
+
+            border-radius: 8px;
+
+            background: #374151;
+            color: white;
+
+            cursor: pointer;
+
+            font-size: 14px;
+        }
+
+        .back-button:hover {
+            background: #111827;
+        }
+
+        .employee-card {
+
+            background: white;
+
+            border-radius: 12px;
+
+            padding: 22px;
+
+            margin-bottom: 22px;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .employee-card h2 {
+
+            margin-top: 0;
+            margin-bottom: 18px;
+
+            font-size: 20px;
+        }
+
+        .employee-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 18px;
+        }
+
+        .info-box {
+
+            background: #f8fafc;
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 8px;
+
+            padding: 14px;
+        }
+
+        .info-label {
+
+            display: block;
+
+            font-size: 12px;
+
+            color: #6b7280;
+
+            margin-bottom: 6px;
+        }
+
+        .info-value {
+
+            font-size: 15px;
+
+            font-weight: 600;
+        }
+
+        .filter-card {
+
+            background: white;
+
+            border-radius: 12px;
+
+            padding: 22px;
+
+            margin-bottom: 22px;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .filter-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr auto;
+
+            gap: 18px;
+
+            align-items: end;
+        }
+
+        .field label {
+
+            display: block;
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            margin-bottom: 7px;
+        }
+
+        .field select {
+
+            width: 100%;
+
+            padding: 11px 12px;
+
+            border: 1px solid #d1d5db;
+
+            border-radius: 7px;
+
+            background: white;
+
+            font-size: 14px;
+        }
+
+        .view-button {
+
+            padding: 11px 22px;
+
+            border: none;
+
+            border-radius: 7px;
+
+            background: #2563eb;
+
+            color: white;
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+        .view-button:hover {
+            background: #1d4ed8;
+        }
+
+        .message {
+
+            display: none;
+
+            padding: 13px 16px;
+
+            border-radius: 8px;
+
+            margin-bottom: 20px;
+
+            font-size: 14px;
+        }
+
+        .salary-section,
+        .overtime-section {
+
+            background: white;
+
+            border-radius: 12px;
+
+            padding: 25px;
+
+            margin-bottom: 25px;
+
+            box-shadow:
+                0 2px 8px rgba(0, 0, 0, 0.06);
+        }
+
+        .section-title {
+
+            margin: 0 0 20px;
+
+            font-size: 21px;
+
+            font-weight: 700;
+        }
+
+        .salary-header-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 15px;
+
+            margin-bottom: 25px;
+        }
+
+        .salary-detail {
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 8px;
+
+            padding: 13px;
+        }
+
+        .salary-detail span {
+
+            display: block;
+
+            font-size: 12px;
+
+            color: #6b7280;
+
+            margin-bottom: 5px;
+        }
+
+        .salary-detail strong {
+            font-size: 14px;
+        }
+
+        .table-title {
+
+            font-size: 17px;
+
+            margin: 22px 0 10px;
+        }
+
+        table {
+
+            width: 100%;
+
+            border-collapse: collapse;
+
+            margin-bottom: 20px;
+        }
+
+        th {
+
+            text-align: left;
+
+            padding: 12px;
+
+            background: #f3f4f6;
+
+            border-bottom:
+                1px solid #d1d5db;
+
+            font-size: 13px;
+        }
+
+        td {
+
+            padding: 11px 12px;
+
+            border-bottom:
+                1px solid #e5e7eb;
+
+            font-size: 14px;
+        }
+
+        .amount {
+            text-align: right;
+        }
+
+        .total-grid {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap: 15px;
+
+            margin-top: 20px;
+        }
+
+        .total-box {
+
+            padding: 16px;
+
+            border-radius: 8px;
+
+            background: #f8fafc;
+
+            border: 1px solid #e5e7eb;
+        }
+
+        .total-box span {
+
+            display: block;
+
+            font-size: 12px;
+
+            color: #6b7280;
+
+            margin-bottom: 6px;
+        }
+
+        .total-box strong {
+
+            font-size: 17px;
+        }
+
+        .net-pay {
+
+            background: #eff6ff;
+
+            border-color: #bfdbfe;
+        }
+
+        .overtime-card {
+
+            border: 1px solid #e5e7eb;
+
+            border-radius: 10px;
+
+            padding: 18px;
+
+            margin-bottom: 20px;
+        }
+
+        .overtime-card h3 {
+
+            margin-top: 0;
+
+            margin-bottom: 15px;
+
+            font-size: 17px;
+        }
+
+        .empty-message {
+
+            padding: 25px;
+
+            text-align: center;
+
+            color: #6b7280;
+
+            background: #f9fafb;
+
+            border-radius: 8px;
+        }
+
+        @media (max-width: 900px) {
+
+            body {
+                padding: 20px;
+            }
+
+            .employee-grid,
+            .salary-header-grid,
+            .total-grid {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+            .filter-grid {
+
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+
+            .header {
+
+                flex-direction: column;
+
+                align-items: flex-start;
+
+                gap: 15px;
+            }
+
+            .employee-grid,
+            .salary-header-grid,
+            .total-grid {
+
+                grid-template-columns: 1fr;
+            }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="page-container">
+
+    <div class="header">
+
+        <h1>Salary Slip</h1>
+
+        <button
+            type="button"
+            id="back-dashboard-button"
+            class="back-button"
+        >
+            ← Back to Dashboard
+        </button>
+
+    </div>
+
+
+    <!-- =====================================================
+         EMPLOYEE INFORMATION
+         ===================================================== -->
+
+    <div class="employee-card">
+
+        <h2>Employee Information</h2>
+
+        <div class="employee-grid">
+
+            <div class="info-box">
+
+                <span class="info-label">
+                    Employee
+                </span>
+
+                <span
+                    id="employee-id"
+                    class="info-value"
+                >
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <span class="info-label">
+                    Employee Name
+                </span>
+
+                <span
+                    id="employee-name"
+                    class="info-value"
+                >
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <span class="info-label">
+                    Company
+                </span>
+
+                <span
+                    id="employee-company"
+                    class="info-value"
+                >
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <span class="info-label">
+                    Department
+                </span>
+
+                <span
+                    id="employee-department"
+                    class="info-value"
+                >
+                    Loading...
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         YEAR / MONTH FILTER
+         ===================================================== -->
+
+    <div class="filter-card">
+
+        <div class="filter-grid">
+
+            <div class="field">
+
+                <label for="salary-year">
+                    Year
+                </label>
+
+                <select id="salary-year"></select>
+
+            </div>
+
+
+            <div class="field">
+
+                <label for="salary-month">
+                    Month
+                </label>
+
+                <select id="salary-month">
+
+                    <option value="1">
+                        January
+                    </option>
+
+                    <option value="2">
+                        February
+                    </option>
+
+                    <option value="3">
+                        March
+                    </option>
+
+                    <option value="4">
+                        April
+                    </option>
+
+                    <option value="5">
+                        May
+                    </option>
+
+                    <option value="6">
+                        June
+                    </option>
+
+                    <option value="7">
+                        July
+                    </option>
+
+                    <option value="8">
+                        August
+                    </option>
+
+                    <option value="9">
+                        September
+                    </option>
+
+                    <option value="10">
+                        October
+                    </option>
+
+                    <option value="11">
+                        November
+                    </option>
+
+                    <option value="12">
+                        December
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <button
+                type="button"
+                id="view-salary-button"
+                class="view-button"
+            >
+                View Salary Slip
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         MESSAGE
+         ===================================================== -->
+
+    <div
+        id="salary-message"
+        class="message"
+    ></div>
+
+
+    <!-- =====================================================
+         SALARY SLIP
+         ===================================================== -->
+
+    <div
+        id="salary-section"
+        class="salary-section"
+        style="display:none;"
+    >
+
+        <h2 class="section-title">
+            Salary Slip
+        </h2>
+
+        <div
+            id="salary-header-grid"
+            class="salary-header-grid"
+        ></div>
+
+
+        <h3 class="table-title">
+            Earnings
+        </h3>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Salary Component
+                    </th>
+
+                    <th>
+                        Type
+                    </th>
+
+                    <th class="amount">
+                        Amount
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="earnings-body"></tbody>
+
+        </table>
+
+
+        <h3 class="table-title">
+            Deductions
+        </h3>
+
+        <table>
+
+            <thead>
+
+                <tr>
+
+                    <th>
+                        Salary Component
+                    </th>
+
+                    <th>
+                        Type
+                    </th>
+
+                    <th class="amount">
+                        Amount
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="deductions-body"></tbody>
+
+        </table>
+
+
+        <div
+            id="salary-totals"
+            class="total-grid"
+        ></div>
+
+    </div>
+
+
+    <!-- =====================================================
+         OVERTIME SLIP
+         ===================================================== -->
+
+    <div
+        id="overtime-section"
+        class="overtime-section"
+        style="display:none;"
+    >
+
+        <h2 class="section-title">
+            Overtime Slip
+        </h2>
+
+        <div id="overtime-content"></div>
+
+    </div>
+
+</div>
+
+
+<script src="/assets/hrms_assignment/js/salary-slip.js"></script>
+
+</body>
+
+</html>

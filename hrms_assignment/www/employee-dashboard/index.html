@@ -1,0 +1,1813 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Employee Dashboard</title>
+
+    <meta
+        name="csrf-token"
+        content="{{ frappe.session.csrf_token }}"
+    >
+
+<style>
+
+    /* =====================================================
+       GLOBAL
+       ===================================================== */
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        margin: 0;
+        padding: 40px 50px;
+        max-width: 1400px;
+        margin-left: auto;
+        margin-right: auto;
+
+        font-family:
+            Arial,
+            Helvetica,
+            sans-serif;
+
+        background: #f5f7fb;
+        color: #1f2937;
+    }
+
+
+    /* =====================================================
+       DASHBOARD HEADER
+       ===================================================== */
+
+    .dashboard-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 28px;
+    }
+
+    .dashboard-title h1 {
+        margin: 0 0 7px 0;
+        font-size: 32px;
+        font-weight: 700;
+        color: #111827;
+    }
+
+    .dashboard-title p {
+        margin: 0;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+
+    /* =====================================================
+       TOP RIGHT BUTTONS
+       ===================================================== */
+
+    #top-action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    #attendance-history-button,
+    #leave-application-button,
+    #salary-slip-button {
+
+        border: 1px solid #dbe2ea;
+        border-radius: 9px;
+        padding: 12px 18px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+
+        background: #ffffff;
+        color: #374151;
+
+        box-shadow:
+            0 3px 10px rgba(0, 0, 0, 0.05);
+
+        transition: all 0.2s ease;
+    }
+
+    #attendance-history-button:hover,
+    #leave-application-button:hover,
+    #salary-slip-button:hover {
+
+        background: #f8fafc;
+        border-color: #2563eb;
+        color: #2563eb;
+        transform: translateY(-1px);
+    }
+
+
+    /* =====================================================
+       EMPLOYEE PROFILE CARD
+       ===================================================== */
+
+    .employee-profile-card {
+
+        width: 100%;
+        margin-bottom: 35px;
+        padding: 26px;
+
+        background: #ffffff;
+
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+
+        box-shadow:
+            0 5px 18px rgba(0, 0, 0, 0.05);
+    }
+
+    .profile-card-title {
+
+        margin-bottom: 22px;
+
+        color: #111827;
+
+        font-size: 16px;
+        font-weight: 700;
+
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+    }
+
+    .profile-content {
+
+        display: flex;
+        align-items: center;
+        gap: 25px;
+    }
+
+
+    /* =====================================================
+       EMPLOYEE IMAGE
+       ===================================================== */
+
+    .employee-image-container {
+
+        width: 120px;
+        height: 120px;
+        flex-shrink: 0;
+
+        border-radius: 16px;
+        overflow: hidden;
+
+        background: #eef2f7;
+        border: 1px solid #dbe2ea;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    #employee-image {
+
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .employee-image-placeholder {
+
+        width: 100%;
+        height: 100%;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        background: #e5e7eb;
+        color: #6b7280;
+
+        font-size: 40px;
+        font-weight: 700;
+    }
+
+
+    /* =====================================================
+       EMPLOYEE BASIC INFORMATION
+       ===================================================== */
+
+    .employee-main-info {
+
+        min-width: 240px;
+        flex: 1;
+    }
+
+    #profile-employee-name {
+
+        margin: 0 0 6px 0;
+
+        color: #111827;
+
+        font-size: 26px;
+        font-weight: 700;
+    }
+
+    #profile-designation {
+
+        margin: 0 0 8px 0;
+
+        color: #2563eb;
+
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    #profile-employee-id {
+
+        margin: 0;
+
+        color: #6b7280;
+
+        font-size: 13px;
+    }
+
+
+    /* =====================================================
+       EMPLOYEE DETAILS GRID
+       ===================================================== */
+
+    .employee-details-grid {
+
+        flex: 2;
+
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(200px, 1fr));
+
+        gap: 16px 28px;
+
+        padding-left: 25px;
+
+        border-left: 1px solid #e5e7eb;
+    }
+
+    .employee-detail {
+        min-width: 0;
+    }
+
+    .employee-detail-label {
+
+        display: block;
+
+        margin-bottom: 5px;
+
+        color: #9ca3af;
+
+        font-size: 11px;
+        font-weight: 700;
+
+        text-transform: uppercase;
+        letter-spacing: 0.7px;
+    }
+
+    .employee-detail-value {
+
+        display: block;
+
+        color: #374151;
+
+        font-size: 14px;
+        font-weight: 600;
+
+        word-break: break-word;
+    }
+
+
+    /* =====================================================
+       ATTENDANCE TITLE
+       ===================================================== */
+
+    .attendance-heading {
+
+        margin: 0 0 18px 0;
+
+        color: #111827;
+
+        font-size: 22px;
+        font-weight: 700;
+    }
+
+
+    /* =====================================================
+       ATTENDANCE SUMMARY CARDS
+       ===================================================== */
+
+    .attendance-card-grid {
+
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+        gap: 16px;
+
+        margin-bottom: 5px;
+    }
+
+    #attendance-status,
+    #last-attendance-date,
+    #last-check-in-time,
+    #last-check-out-time {
+
+        min-height: 90px;
+
+        margin: 0;
+        padding: 20px 22px;
+
+        display: flex;
+        align-items: center;
+
+        border-radius: 14px;
+
+        background: #ffffff;
+
+        border: 1px solid #e5e7eb;
+
+        box-shadow:
+            0 4px 12px rgba(0, 0, 0, 0.05);
+
+        font-size: 15px;
+
+        color: #374151;
+
+        transition: all 0.2s ease;
+    }
+
+    #attendance-status:hover,
+    #last-attendance-date:hover,
+    #last-check-in-time:hover,
+    #last-check-out-time:hover {
+
+        transform: translateY(-2px);
+
+        box-shadow:
+            0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+
+    /* =====================================================
+       ATTENDANCE STATUS
+       ===================================================== */
+
+    #attendance-status {
+
+        font-size: 17px;
+        font-weight: 700;
+
+        color: #15803d;
+
+        border-left: 5px solid #22c55e;
+    }
+
+
+    /* =====================================================
+       NORMAL CHECK IN / OUT BUTTONS
+       ===================================================== */
+
+    #check-in-button,
+    #check-out-button {
+
+        border: none;
+
+        border-radius: 9px;
+
+        padding: 13px 25px;
+
+        margin-top: 18px;
+
+        font-size: 15px;
+        font-weight: 700;
+
+        cursor: pointer;
+
+        transition: 0.2s ease;
+    }
+
+    #check-in-button {
+
+        background: #2563eb;
+        color: white;
+
+        box-shadow:
+            0 4px 10px rgba(37, 99, 235, 0.25);
+    }
+
+    #check-in-button:hover {
+
+        background: #1d4ed8;
+        transform: translateY(-1px);
+    }
+
+    #check-out-button {
+
+        background: #dc2626;
+        color: white;
+    }
+
+    #check-out-button:hover {
+
+        background: #b91c1c;
+        transform: translateY(-1px);
+    }
+
+
+    /* =====================================================
+       NORMAL CHECK IN / OUT FORMS
+       ===================================================== */
+
+    #check-in-form,
+    #check-out-form {
+
+        width: 100%;
+        max-width: 600px;
+
+        margin-top: 25px;
+        padding: 24px;
+
+        background: #ffffff;
+
+        border: 1px solid #e5e7eb;
+
+        border-radius: 14px;
+
+        box-shadow:
+            0 4px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    #check-in-form h3,
+    #check-out-form h3 {
+
+        margin-top: 0;
+        margin-bottom: 20px;
+
+        font-size: 18px;
+
+        color: #111827;
+    }
+
+    #check-in-form label,
+    #check-out-form label {
+
+        color: #374151;
+
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    #check-in-form input,
+    #check-out-form input {
+
+        width: 100%;
+
+        padding: 11px;
+
+        margin-top: 6px;
+
+        border: 1px solid #d1d5db;
+
+        border-radius: 7px;
+
+        font-size: 14px;
+    }
+
+    #check-in-form input:focus,
+    #check-out-form input:focus {
+
+        outline: none;
+
+        border-color: #2563eb;
+
+        box-shadow:
+            0 0 0 3px rgba(37, 99, 235, 0.10);
+    }
+
+
+    /* =====================================================
+       NORMAL FORM BUTTONS
+       ===================================================== */
+
+    #submit-check-in-button,
+    #submit-check-out-button,
+    #cancel-check-in-button,
+    #cancel-check-out-button {
+
+        border: none;
+
+        border-radius: 9px;
+
+        padding: 11px 18px;
+
+        font-size: 14px;
+        font-weight: 600;
+
+        cursor: pointer;
+
+        transition: 0.2s ease;
+    }
+
+    #submit-check-in-button,
+    #submit-check-out-button {
+
+        background: #2563eb;
+
+        color: white;
+
+        margin-right: 8px;
+    }
+
+    #submit-check-in-button:hover,
+    #submit-check-out-button:hover {
+
+        background: #1d4ed8;
+    }
+
+    #cancel-check-in-button,
+    #cancel-check-out-button {
+
+        background: #e5e7eb;
+
+        color: #374151;
+    }
+
+    #cancel-check-in-button:hover,
+    #cancel-check-out-button:hover {
+
+        background: #d1d5db;
+    }
+
+
+    /* =====================================================
+       NORMAL FORM MESSAGES
+       ===================================================== */
+
+    #check-in-message,
+    #check-out-message {
+
+        margin-top: 15px;
+
+        font-size: 14px;
+
+        font-weight: 600;
+    }
+
+
+    /* =====================================================
+       COMPANY HOLIDAY SECTION
+       ===================================================== */
+
+    #holiday-section {
+
+        margin-top: 35px;
+        margin-bottom: 25px;
+
+        padding: 24px;
+
+        background: #ffffff;
+
+        border: 1px solid #e5e7eb;
+
+        border-radius: 14px;
+
+        box-shadow:
+            0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .holiday-section-title {
+
+        margin-bottom: 6px;
+
+        color: #111827;
+
+        font-size: 20px;
+        font-weight: 700;
+    }
+
+    .holiday-section-subtitle {
+
+        margin-bottom: 18px;
+
+        color: #6b7280;
+
+        font-size: 13px;
+    }
+
+    #holiday-list {
+
+        display: grid;
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+
+        gap: 10px;
+    }
+
+
+    /* =====================================================
+       HOLIDAY DATE BUTTONS
+       ===================================================== */
+
+    .holiday-date-button {
+
+        width: 100%;
+
+        padding: 13px 14px;
+
+        text-align: left;
+
+        background: #fff7f7;
+
+        border: 1px solid #fecaca;
+
+        border-left: 5px solid #dc2626;
+
+        border-radius: 9px;
+
+        color: #dc2626;
+
+        font-size: 13px;
+
+        font-weight: 700;
+
+        cursor: pointer;
+
+        transition: 0.2s ease;
+    }
+
+    .holiday-date-button:hover {
+
+        background: #fee2e2;
+
+        border-color: #dc2626;
+
+        transform: translateY(-1px);
+    }
+
+    .holiday-date {
+
+        display: block;
+
+        font-size: 14px;
+
+        margin-bottom: 4px;
+    }
+
+    .holiday-description {
+
+        display: block;
+
+        color: #991b1b;
+
+        font-size: 12px;
+
+        font-weight: 600;
+    }
+
+
+    /* =====================================================
+       MARK ATTENDANCE IN HOLIDAY BUTTON
+       ===================================================== */
+
+    #mark-holiday-attendance-button {
+
+        border: none;
+
+        border-radius: 9px;
+
+        padding: 13px 22px;
+
+        margin-top: 10px;
+
+        background: #b91c1c;
+
+        color: white;
+
+        font-size: 15px;
+
+        font-weight: 700;
+
+        cursor: pointer;
+
+        box-shadow:
+            0 4px 10px rgba(185, 28, 28, 0.20);
+
+        transition: 0.2s ease;
+    }
+
+    #mark-holiday-attendance-button:hover {
+
+        background: #991b1b;
+
+        transform: translateY(-1px);
+    }
+
+
+    /* =====================================================
+       HOLIDAY ATTENDANCE FORM
+       ===================================================== */
+
+    #holiday-attendance-form {
+
+        width: 100%;
+        max-width: 600px;
+
+        margin-top: 20px;
+
+        padding: 24px;
+
+        background: #ffffff;
+
+        border: 1px solid #fecaca;
+
+        border-radius: 14px;
+
+        box-shadow:
+            0 4px 18px rgba(0, 0, 0, 0.08);
+    }
+
+    #holiday-attendance-form h3 {
+
+        margin-top: 0;
+
+        margin-bottom: 8px;
+
+        color: #991b1b;
+
+        font-size: 18px;
+    }
+
+    .holiday-form-note {
+
+        margin-top: 0;
+
+        margin-bottom: 20px;
+
+        color: #6b7280;
+
+        font-size: 13px;
+    }
+
+    #holiday-attendance-form label {
+
+        display: block;
+
+        margin-top: 12px;
+
+        color: #374151;
+
+        font-size: 14px;
+
+        font-weight: 600;
+    }
+
+    #holiday-attendance-date,
+    #holiday-attendance-time {
+
+        width: 100%;
+
+        padding: 11px;
+
+        margin-top: 6px;
+
+        border: 1px solid #d1d5db;
+
+        border-radius: 7px;
+
+        font-size: 14px;
+
+        background: white;
+    }
+
+    #holiday-attendance-date:focus,
+    #holiday-attendance-time:focus {
+
+        outline: none;
+
+        border-color: #dc2626;
+
+        box-shadow:
+            0 0 0 3px rgba(220, 38, 38, 0.10);
+    }
+
+
+    /* =====================================================
+       HOLIDAY FORM BUTTONS
+       ===================================================== */
+
+    #submit-holiday-check-in-button,
+    #submit-holiday-check-out-button,
+    #cancel-holiday-attendance-button {
+
+        border: none;
+
+        border-radius: 9px;
+
+        padding: 11px 18px;
+
+        margin-top: 20px;
+
+        font-size: 14px;
+
+        font-weight: 700;
+
+        cursor: pointer;
+
+        transition: 0.2s ease;
+    }
+
+    #submit-holiday-check-in-button,
+    #submit-holiday-check-out-button {
+
+        background: #b91c1c;
+
+        color: white;
+
+        margin-right: 8px;
+    }
+
+    #submit-holiday-check-in-button:hover,
+    #submit-holiday-check-out-button:hover {
+
+        background: #991b1b;
+    }
+
+    #cancel-holiday-attendance-button {
+
+        background: #e5e7eb;
+
+        color: #374151;
+    }
+
+    #cancel-holiday-attendance-button:hover {
+
+        background: #d1d5db;
+    }
+
+    #holiday-attendance-message {
+
+        margin-top: 15px;
+
+        font-size: 14px;
+
+        font-weight: 600;
+    }
+
+
+    /* =====================================================
+       HOLIDAY POPUP
+       ===================================================== */
+
+    #holiday-modal {
+
+        position: fixed;
+
+        inset: 0;
+
+        z-index: 9999;
+
+        display: flex;
+
+        align-items: center;
+
+        justify-content: center;
+
+        padding: 20px;
+
+        background: rgba(17, 24, 39, 0.55);
+    }
+
+    .holiday-modal-box {
+
+        width: 100%;
+
+        max-width: 420px;
+
+        padding: 28px;
+
+        background: #ffffff;
+
+        border-radius: 16px;
+
+        border-top: 5px solid #dc2626;
+
+        box-shadow:
+            0 15px 40px rgba(0, 0, 0, 0.20);
+
+        text-align: center;
+    }
+
+    .holiday-modal-box h3 {
+
+        margin: 0 0 12px 0;
+
+        color: #991b1b;
+
+        font-size: 22px;
+    }
+
+    #holiday-modal-message {
+
+        margin: 0 0 22px 0;
+
+        color: #374151;
+
+        font-size: 15px;
+
+        line-height: 1.6;
+    }
+
+    #holiday-modal-close {
+
+        border: none;
+
+        border-radius: 9px;
+
+        padding: 11px 28px;
+
+        background: #dc2626;
+
+        color: white;
+
+        font-size: 14px;
+
+        font-weight: 700;
+
+        cursor: pointer;
+    }
+
+    #holiday-modal-close:hover {
+
+        background: #b91c1c;
+    }
+
+
+    /* =====================================================
+       LOGOUT
+       ===================================================== */
+
+    #logout-button {
+
+        margin-top: 45px;
+
+        padding: 11px 22px;
+
+        background: #374151;
+
+        color: white;
+
+        border: none;
+
+        border-radius: 9px;
+
+        font-size: 14px;
+
+        font-weight: 600;
+
+        cursor: pointer;
+
+        opacity: 0.9;
+    }
+
+    #logout-button:hover {
+
+        background: #111827;
+
+        opacity: 1;
+    }
+
+
+    /* =====================================================
+       TABLET
+       ===================================================== */
+
+    @media (max-width: 1000px) {
+
+        body {
+            padding: 30px;
+        }
+
+        .dashboard-header {
+
+            flex-direction: column;
+
+            gap: 20px;
+        }
+
+        #top-action-buttons {
+
+            justify-content: flex-start;
+        }
+
+        .profile-content {
+
+            align-items: flex-start;
+        }
+
+        .employee-details-grid {
+
+            grid-template-columns:
+                repeat(2, minmax(150px, 1fr));
+        }
+
+        #holiday-list {
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+        }
+
+    }
+
+
+    /* =====================================================
+       MOBILE
+       ===================================================== */
+
+    @media (max-width: 700px) {
+
+        body {
+
+            padding: 22px 16px;
+        }
+
+        .dashboard-header {
+
+            margin-bottom: 22px;
+        }
+
+        .dashboard-title h1 {
+
+            font-size: 26px;
+        }
+
+        #top-action-buttons {
+
+            width: 100%;
+
+            display: grid;
+
+            grid-template-columns: 1fr;
+
+            gap: 8px;
+        }
+
+        #attendance-history-button,
+        #leave-application-button,
+        #salary-slip-button {
+
+            width: 100%;
+        }
+
+
+        /* Employee profile */
+
+        .employee-profile-card {
+
+            padding: 20px;
+
+            margin-bottom: 28px;
+        }
+
+        .profile-content {
+
+            flex-direction: column;
+
+            align-items: center;
+
+            text-align: center;
+        }
+
+        .employee-image-container {
+
+            width: 110px;
+            height: 110px;
+        }
+
+        .employee-main-info {
+
+            width: 100%;
+        }
+
+        #profile-employee-name {
+
+            font-size: 23px;
+        }
+
+        .employee-details-grid {
+
+            width: 100%;
+
+            padding-left: 0;
+
+            padding-top: 20px;
+
+            border-left: none;
+
+            border-top: 1px solid #e5e7eb;
+
+            grid-template-columns: 1fr;
+
+            text-align: left;
+        }
+
+
+        /* Attendance */
+
+        .attendance-heading {
+
+            font-size: 20px;
+        }
+
+        .attendance-card-grid {
+
+            grid-template-columns: 1fr;
+
+            gap: 12px;
+        }
+
+        #attendance-status,
+        #last-attendance-date,
+        #last-check-in-time,
+        #last-check-out-time {
+
+            width: 100%;
+
+            min-height: 75px;
+        }
+
+        #check-in-form,
+        #check-out-form,
+        #holiday-attendance-form {
+
+            width: 100%;
+
+            padding: 20px;
+        }
+
+
+        /* Holidays */
+
+        #holiday-section {
+
+            padding: 20px;
+        }
+
+        #holiday-list {
+
+            grid-template-columns: 1fr;
+        }
+
+        #mark-holiday-attendance-button {
+
+            width: 100%;
+        }
+
+    }
+
+
+    /* =====================================================
+       SMALL MOBILE
+       ===================================================== */
+
+    @media (max-width: 420px) {
+
+        body {
+
+            padding: 18px 12px;
+        }
+
+        .employee-profile-card {
+
+            padding: 17px;
+        }
+
+        .profile-card-title {
+
+            font-size: 14px;
+        }
+
+        .employee-image-container {
+
+            width: 95px;
+            height: 95px;
+        }
+
+        #profile-employee-name {
+
+            font-size: 21px;
+        }
+
+        #check-in-button,
+        #check-out-button {
+
+            width: 100%;
+        }
+
+    }
+
+</style>
+
+</head>
+
+
+<body>
+
+
+<!-- =====================================================
+     DASHBOARD HEADER
+     ===================================================== -->
+
+<div class="dashboard-header">
+
+    <div class="dashboard-title">
+
+        <h1>
+            Employee Dashboard
+        </h1>
+
+        <p>
+            Welcome to your employee portal
+        </p>
+
+    </div>
+
+
+    <div id="top-action-buttons">
+
+        <button
+            type="button"
+            id="attendance-history-button"
+        >
+            Attendance History
+        </button>
+
+
+        <button
+            type="button"
+            id="leave-application-button"
+        >
+            Leave Application
+        </button>
+
+
+        <button
+            type="button"
+            id="salary-slip-button"
+        >
+            Salary Slip
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     EMPLOYEE PROFILE
+     ===================================================== -->
+
+<div class="employee-profile-card">
+
+    <div class="profile-card-title">
+        Employee Profile
+    </div>
+
+
+    <div class="profile-content">
+
+
+        <div class="employee-image-container">
+
+            <img
+                id="employee-image"
+                src=""
+                alt="Employee Photo"
+                style="display: none;"
+            >
+
+            <div
+                id="employee-image-placeholder"
+                class="employee-image-placeholder"
+            >
+                👤
+            </div>
+
+        </div>
+
+
+        <div class="employee-main-info">
+
+            <h2 id="profile-employee-name">
+                Loading...
+            </h2>
+
+            <p id="profile-designation">
+                Loading...
+            </p>
+
+            <p id="profile-employee-id">
+                Employee ID: Loading...
+            </p>
+
+        </div>
+
+
+        <div class="employee-details-grid">
+
+
+            <div class="employee-detail">
+
+                <span class="employee-detail-label">
+                    Phone
+                </span>
+
+                <span
+                    class="employee-detail-value"
+                    id="profile-phone"
+                >
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="employee-detail">
+
+                <span class="employee-detail-label">
+                    Company Mail
+                </span>
+
+                <span
+                    class="employee-detail-value"
+                    id="profile-company-email"
+                >
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="employee-detail">
+
+                <span class="employee-detail-label">
+                    Personal Mail
+                </span>
+
+                <span
+                    class="employee-detail-value"
+                    id="profile-personal-email"
+                >
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="employee-detail">
+
+                <span class="employee-detail-label">
+                    Department
+                </span>
+
+                <span
+                    class="employee-detail-value"
+                    id="profile-department"
+                >
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="employee-detail">
+
+                <span class="employee-detail-label">
+                    Company
+                </span>
+
+                <span
+                    class="employee-detail-value"
+                    id="profile-company"
+                >
+                    Loading...
+                </span>
+
+            </div>
+
+
+            <div class="employee-detail">
+
+                <span class="employee-detail-label">
+                    Date of Joining
+                </span>
+
+                <span
+                    class="employee-detail-value"
+                    id="profile-date-of-joining"
+                >
+                    Loading...
+                </span>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     OLD EMPLOYEE INFORMATION
+     ===================================================== -->
+
+<div style="display: none;">
+
+    <h2 id="employee-name">
+        Loading...
+    </h2>
+
+    <p id="employee-email"></p>
+
+</div>
+
+
+
+<!-- =====================================================
+     ATTENDANCE
+     ===================================================== -->
+
+<h2 class="attendance-heading">
+    Attendance
+</h2>
+
+
+<div class="attendance-card-grid">
+
+    <p id="attendance-status">
+        Loading...
+    </p>
+
+    <p id="last-attendance-date">
+        Last Attendance Date: Not yet
+    </p>
+
+    <p id="last-check-in-time">
+        Last Check In: Not yet
+    </p>
+
+    <p id="last-check-out-time">
+        Last Check Out: Not yet
+    </p>
+
+</div>
+
+
+
+<!-- =====================================================
+     NORMAL CHECK IN BUTTON
+     ===================================================== -->
+
+<button
+    type="button"
+    id="check-in-button"
+>
+    Check In
+</button>
+
+
+
+<!-- =====================================================
+     NORMAL CHECK IN FORM
+     ===================================================== -->
+
+<div
+    id="check-in-form"
+    style="display: none;"
+>
+
+    <h3>
+        Select Check In Date &amp; Time
+    </h3>
+
+
+    <label for="check-in-date">
+        Date:
+    </label>
+
+
+    <input
+        type="date"
+        id="check-in-date"
+        required
+    >
+
+
+    <br>
+    <br>
+
+
+    <label for="check-in-time">
+        Time:
+    </label>
+
+
+    <input
+        type="time"
+        id="check-in-time"
+        required
+    >
+
+
+    <br>
+    <br>
+
+
+    <button
+        type="button"
+        id="submit-check-in-button"
+    >
+        Submit Check In
+    </button>
+
+
+    <button
+        type="button"
+        id="cancel-check-in-button"
+    >
+        Cancel
+    </button>
+
+
+    <p id="check-in-message"></p>
+
+</div>
+
+
+
+<!-- =====================================================
+     NORMAL CHECK OUT BUTTON
+     ===================================================== -->
+
+<button
+    type="button"
+    id="check-out-button"
+    style="display: none;"
+>
+    Check Out
+</button>
+
+
+
+<!-- =====================================================
+     NORMAL CHECK OUT FORM
+     ===================================================== -->
+
+<div
+    id="check-out-form"
+    style="display: none;"
+>
+
+    <h3>
+        Select Check Out Date &amp; Time
+    </h3>
+
+
+    <label for="check-out-date">
+        Date:
+    </label>
+
+
+    <input
+        type="date"
+        id="check-out-date"
+        required
+    >
+
+
+    <br>
+    <br>
+
+
+    <label for="check-out-time">
+        Time:
+    </label>
+
+
+    <input
+        type="time"
+        id="check-out-time"
+        required
+    >
+
+
+    <br>
+    <br>
+
+
+    <button
+        type="button"
+        id="submit-check-out-button"
+    >
+        Submit Check Out
+    </button>
+
+
+    <button
+        type="button"
+        id="cancel-check-out-button"
+    >
+        Cancel
+    </button>
+
+
+    <p id="check-out-message"></p>
+
+</div>
+
+
+
+<!-- =====================================================
+     COMPANY HOLIDAYS
+     ===================================================== -->
+
+<div
+    id="holiday-section"
+    style="display: none;"
+>
+
+    <div class="holiday-section-title">
+        Company Holidays
+    </div>
+
+
+    <div class="holiday-section-subtitle">
+        Holidays provided by the company Holiday List
+    </div>
+
+
+    <div id="holiday-list"></div>
+
+
+    <button
+        type="button"
+        id="mark-holiday-attendance-button"
+        style="display: none;"
+    >
+        Mark Attendance in Holiday
+    </button>
+
+</div>
+
+
+
+<!-- =====================================================
+     HOLIDAY ATTENDANCE FORM
+     ===================================================== -->
+
+<div
+    id="holiday-attendance-form"
+    style="display: none;"
+>
+
+    <h3>
+        Holiday Attendance
+    </h3>
+
+
+    <p class="holiday-form-note">
+        Use this option only when you are working on a company holiday.
+        This attendance will be recorded as holiday work.
+    </p>
+
+
+    <label for="holiday-attendance-date">
+        Holiday Date:
+    </label>
+
+
+    <select
+        id="holiday-attendance-date"
+        required
+    >
+        <option value="">
+            Select Holiday
+        </option>
+    </select>
+
+
+    <label for="holiday-attendance-time">
+        Time:
+    </label>
+
+
+    <input
+        type="time"
+        id="holiday-attendance-time"
+        required
+    >
+
+
+    <button
+        type="button"
+        id="submit-holiday-check-in-button"
+    >
+        Mark Holiday Check In
+    </button>
+
+
+    <button
+        type="button"
+        id="submit-holiday-check-out-button"
+        style="display: none;"
+    >
+        Mark Holiday Check Out
+    </button>
+
+
+    <button
+        type="button"
+        id="cancel-holiday-attendance-button"
+    >
+        Cancel
+    </button>
+
+
+    <p id="holiday-attendance-message"></p>
+
+</div>
+
+
+
+<!-- =====================================================
+     HOLIDAY POPUP
+     ===================================================== -->
+
+<div
+    id="holiday-modal"
+    style="display: none;"
+>
+
+    <div class="holiday-modal-box">
+
+        <h3>
+            Holiday
+        </h3>
+
+
+        <p id="holiday-modal-message">
+            That is a holiday.
+        </p>
+
+
+        <button
+            type="button"
+            id="holiday-modal-close"
+        >
+            OK
+        </button>
+
+    </div>
+
+</div>
+
+
+
+<!-- =====================================================
+     LOGOUT
+     ===================================================== -->
+
+<button
+    type="button"
+    id="logout-button"
+>
+    Logout
+</button>
+
+
+
+<!-- =====================================================
+     JAVASCRIPT
+     ===================================================== -->
+
+<script src="/assets/hrms_assignment/js/employee-dashboard.js"></script>
+
+
+</body>
+
+</html>

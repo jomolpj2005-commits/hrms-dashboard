@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Leave Application</title>
+
+    <meta name="csrf-token"
+          content="{{ frappe.session.csrf_token }}">
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 30px;
+            background: #f7f8fa;
+            font-family: Arial, sans-serif;
+            color: #36414c;
+        }
+
+        .form-container {
+            max-width: 1100px;
+            margin: auto;
+        }
+
+        /* ==============================
+           PAGE HEADER
+        ============================== */
+
+        .page-header {
+            background: white;
+            padding: 20px 25px;
+            border: 1px solid #dfe2e5;
+            border-radius: 6px 6px 0 0;
+
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        /* ==============================
+           EMPLOYEE LEAVE BALANCE BUTTON
+        ============================== */
+
+        #employee-leave-balance-button {
+            padding: 9px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background: white;
+            color: #36414c;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        #employee-leave-balance-button:hover {
+            background: #f8f9fa;
+        }
+
+        /* ==============================
+           LEAVE BALANCE SECTION
+        ============================== */
+
+        #leave-balance-section {
+            display: none;
+            background: white;
+            border: 1px solid #dfe2e5;
+            border-top: none;
+            padding: 25px;
+        }
+
+        .balance-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .balance-table th {
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            background: #f8f9fa;
+            padding: 12px;
+            border: 1px solid #dfe2e5;
+        }
+
+        .balance-table td {
+            padding: 12px;
+            font-size: 13px;
+            border: 1px solid #dfe2e5;
+        }
+
+        /* ==============================
+           FORM CARD
+        ============================== */
+
+        .form-card {
+            background: white;
+            border: 1px solid #dfe2e5;
+            border-top: none;
+            padding: 25px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        /* ==============================
+           FORM GRID
+        ============================== */
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 30px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 7px;
+            color: #4b5563;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 9px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background: white;
+            font-size: 14px;
+            color: #36414c;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #5e64ff;
+            box-shadow: 0 0 0 1px #5e64ff;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        /* ==============================
+           READ ONLY FIELD
+        ============================== */
+
+        .field-value {
+            padding: 9px 10px;
+            min-height: 38px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            background: #f8f9fa;
+            font-size: 14px;
+        }
+
+        /* ==============================
+           LEAVE BALANCE
+        ============================== */
+
+        .balance-box {
+            background: #f8f9fa;
+            border: 1px solid #dfe2e5;
+            border-radius: 5px;
+            padding: 15px;
+        }
+
+        .balance-value {
+            font-size: 18px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+
+        /* ==============================
+           HALF DAY
+        ============================== */
+
+        .half-day-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .half-day-group input {
+            width: auto;
+        }
+
+        /* ==============================
+           STATUS
+        ============================== */
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px 30px;
+        }
+
+        .status-box {
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border: 1px solid #dfe2e5;
+            border-radius: 5px;
+        }
+
+        .status-label {
+            display: block;
+            font-size: 12px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .status-value {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* ==============================
+           ACTION BUTTON
+        ============================== */
+
+        .action-area {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 10px;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        #apply-leave-button {
+            background: #5e64ff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        #apply-leave-button:hover {
+            background: #4f55e8;
+        }
+
+        #leave-message {
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        /* ==============================
+           HISTORY
+        ============================== */
+
+        .history-section {
+            margin-top: 30px;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+            background: #f8f9fa;
+            padding: 12px;
+            border: 1px solid #dfe2e5;
+        }
+
+        td {
+            padding: 12px;
+            font-size: 13px;
+            border: 1px solid #dfe2e5;
+        }
+
+        /* ==============================
+           MOBILE
+        ============================== */
+
+        @media (max-width: 700px) {
+
+            body {
+                padding: 15px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 15px;
+            }
+
+            #employee-leave-balance-button {
+                width: 100%;
+            }
+
+            .form-grid,
+            .status-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-group.full-width {
+                grid-column: auto;
+            }
+
+        }
+.success-popup {
+    position: fixed;
+    top: 25px;
+    right: 25px;
+    width: 420px;
+    background: #ffffff;
+    border: 1px solid #d9e2ec;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    display: none;
+    align-items: center;
+    padding: 18px;
+    z-index: 9999;
+}
+
+.success-popup-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #28a745;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    font-weight: bold;
+    margin-right: 14px;
+}
+
+.success-popup-content {
+    flex: 1;
+}
+
+.success-popup-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 5px;
+}
+
+.success-popup-message {
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+.success-popup-close {
+    border: none;
+    background: transparent;
+    color: #6b7280;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 0 4px;
+}
+
+.success-popup-close:hover {
+    color: #111827;
+}
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="form-container">
+
+
+    <!-- =========================================
+         PAGE HEADER
+    ========================================== -->
+
+    <div class="page-header">
+
+        <h1>
+            Leave Application
+        </h1>
+
+        <button
+            type="button"
+            id="employee-leave-balance-button">
+
+            Employee Leave Balance
+
+        </button>
+
+    </div>
+
+
+    <!-- =========================================
+         EMPLOYEE LEAVE BALANCE
+    ========================================== -->
+
+    <div
+        id="leave-balance-section">
+
+        <div class="section-title">
+
+            Employee Leave Balance
+
+        </div>
+
+        <div class="table-wrapper">
+
+            <table class="balance-table">
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Leave Type
+                        </th>
+
+                        <th>
+                            Allocated
+                        </th>
+
+                        <th>
+                            Used
+                        </th>
+
+                        <th>
+                            Available
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody id="employee-leave-balance-body">
+
+                    <tr>
+
+                        <td colspan="4">
+                            Loading...
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================================
+         MAIN FORM
+    ========================================== -->
+
+    <div class="form-card">
+
+
+        <!-- =====================================
+             EMPLOYEE INFORMATION
+        ====================================== -->
+
+        <div class="section">
+
+            <div class="section-title">
+                Employee Information
+            </div>
+
+            <div class="form-grid">
+
+
+                <div class="form-group">
+
+                    <label>
+                        Employee
+                    </label>
+
+                    <div
+                        class="field-value"
+                        id="employee">
+
+                        Loading...
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Employee Name
+                    </label>
+
+                    <div
+                        class="field-value"
+                        id="employee-name">
+
+                        Loading...
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Company
+                    </label>
+
+                    <div
+                        class="field-value"
+                        id="company">
+
+                        Loading...
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Department
+                    </label>
+
+                    <div
+                        class="field-value"
+                        id="department">
+
+                        Loading...
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================
+             LEAVE DETAILS
+        ====================================== -->
+
+        <div class="section">
+
+            <div class="section-title">
+                Leave Details
+            </div>
+
+            <div class="form-grid">
+
+
+                <div class="form-group">
+
+                    <label for="leave-type">
+                        Leave Type
+                    </label>
+
+                    <select id="leave-type">
+
+                        <option value="">
+                            Select Leave Type
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Leave Balance Before Application
+                    </label>
+
+                    <div class="balance-box">
+
+                        <div
+                            class="balance-value"
+                            id="leave-balance">
+
+                            -
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Total Leave Days
+                    </label>
+
+                    <div
+                        class="field-value"
+                        id="total-leave-days">
+
+                        0
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label>
+                        Half Day
+                    </label>
+
+                    <div class="half-day-group">
+
+                        <input
+                            type="checkbox"
+                            id="half-day">
+
+                        <span>
+                            Apply as Half Day
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================
+             DATES & REASON
+        ====================================== -->
+
+        <div class="section">
+
+            <div class="section-title">
+                Dates & Reason
+            </div>
+
+            <div class="form-grid">
+
+
+                <div class="form-group">
+
+                    <label for="from-date">
+                        From Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="from-date">
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="to-date">
+                        To Date
+                    </label>
+
+                    <input
+                        type="date"
+                        id="to-date">
+
+                </div>
+
+
+                <div class="form-group full-width">
+
+                    <label for="reason">
+                        Reason
+                    </label>
+
+                    <textarea
+                        id="reason"
+                        placeholder="Enter reason for leave">
+                    </textarea>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================
+             APPROVAL & LEAVE STATUS
+        ====================================== -->
+
+        <div class="section">
+
+            <div class="section-title">
+                Approval & Leave Status
+            </div>
+
+            <div class="status-grid">
+
+
+                <div class="status-box">
+
+                    <span class="status-label">
+                        Approval
+                    </span>
+
+                    <span
+                        class="status-value"
+                        id="approval-status">
+
+                        Pending
+
+                    </span>
+
+                </div>
+
+
+                <div class="status-box">
+
+                    <span class="status-label">
+                        Leave Status
+                    </span>
+
+                    <span
+                        class="status-value"
+                        id="leave-status">
+
+                        Not Submitted
+
+                    </span>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+        <!-- =====================================
+             APPLY BUTTON
+        ====================================== -->
+
+        <div class="action-area">
+
+            <button
+                type="button"
+                id="apply-leave-button">
+
+                Apply Leave
+
+            </button>
+
+        </div>
+
+
+        <p id="leave-message"></p>
+
+
+        <!-- =====================================
+             LEAVE HISTORY
+        ====================================== -->
+
+        <div class="history-section">
+
+            <div class="section-title">
+                My Leave Applications
+            </div>
+
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+
+                            <th>
+                                Leave Type
+                            </th>
+
+                            <th>
+                                From Date
+                            </th>
+
+                            <th>
+                                To Date
+                            </th>
+
+                            <th>
+                                Total Days
+                            </th>
+
+                            <th>
+                                Approval
+                            </th>
+
+                            <th>
+                                Leave Status
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody id="leave-history-body">
+
+                        <tr>
+
+                            <td colspan="6">
+                                Loading...
+                            </td>
+
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+<div id="success-popup" class="success-popup">
+    <div class="success-popup-icon">✓</div>
+
+    <div class="success-popup-content">
+        <div class="success-popup-title">
+            Leave Application Submitted
+        </div>
+
+        <div class="success-popup-message">
+            Your application has been submitted successfully
+            and is waiting for approval.
+        </div>
+    </div>
+
+    <button
+        type="button"
+        class="success-popup-close"
+        onclick="closeSuccessPopup()"
+    >
+        ×
+    </button>
+</div>
+
+<script src="/assets/hrms_assignment/js/leave-application.js"></script>
+
+</body>
+
+</html>

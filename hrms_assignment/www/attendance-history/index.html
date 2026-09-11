@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Attendance History</title>
+
+    <meta
+        name="csrf-token"
+        content="{{ frappe.session.csrf_token }}"
+    >
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+
+            margin: 0;
+
+            padding: 40px 50px;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background: #f5f7fb;
+
+            color: #1f2937;
+        }
+
+
+        .page-container {
+
+            max-width: 1200px;
+
+            margin: auto;
+        }
+
+
+        /* HEADER */
+
+        .page-header {
+
+            display: flex;
+
+            justify-content:
+                space-between;
+
+            align-items: center;
+
+            margin-bottom: 30px;
+        }
+
+
+        .page-title {
+
+            margin: 0;
+
+            font-size: 30px;
+
+            font-weight: 700;
+
+            color: #111827;
+        }
+
+
+        .page-subtitle {
+
+            margin-top: 7px;
+
+            color: #6b7280;
+
+            font-size: 14px;
+        }
+
+
+        /* BACK BUTTON */
+
+        #back-dashboard-button {
+
+            padding: 11px 18px;
+
+            border-radius: 8px;
+
+            border: 1px solid #d1d5db;
+
+            background: white;
+
+            color: #374151;
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+
+        #back-dashboard-button:hover {
+
+            background: #f3f4f6;
+        }
+
+
+        /* FILTER CARD */
+
+        .filter-card {
+
+            background: white;
+
+            padding: 25px;
+
+            border-radius: 14px;
+
+            border: 1px solid #e5e7eb;
+
+            box-shadow:
+                0 4px 15px rgba(
+                    0,
+                    0,
+                    0,
+                    0.05
+                );
+
+            margin-bottom: 25px;
+        }
+
+
+        .filter-title {
+
+            font-size: 17px;
+
+            font-weight: 700;
+
+            margin-bottom: 18px;
+        }
+
+
+        #attendance-filters {
+
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            flex-wrap: wrap;
+        }
+
+
+        #attendance-filters label {
+
+            font-size: 13px;
+
+            font-weight: 600;
+
+            color: #4b5563;
+        }
+
+
+        #attendance-filters select {
+
+            padding: 10px 12px;
+
+            border: 1px solid #d1d5db;
+
+            border-radius: 8px;
+
+            background: white;
+
+            font-size: 14px;
+        }
+
+
+        #view-attendance-button {
+
+            padding: 11px 20px;
+
+            border: none;
+
+            border-radius: 8px;
+
+            background: #111827;
+
+            color: white;
+
+            font-size: 14px;
+
+            font-weight: 600;
+
+            cursor: pointer;
+        }
+
+
+        #view-attendance-button:hover {
+
+            background: #2563eb;
+        }
+
+
+        #attendance-filter-message {
+
+            margin-top: 15px;
+
+            color: #6b7280;
+
+            font-size: 14px;
+        }
+
+
+        /* TABLE */
+
+        .history-card {
+
+            background: white;
+
+            border-radius: 14px;
+
+            border: 1px solid #e5e7eb;
+
+            box-shadow:
+                0 4px 15px rgba(
+                    0,
+                    0,
+                    0,
+                    0.05
+                );
+
+            overflow: hidden;
+        }
+
+
+        .history-card-title {
+
+            padding: 20px 25px;
+
+            font-size: 18px;
+
+            font-weight: 700;
+
+            border-bottom:
+                1px solid #e5e7eb;
+        }
+
+
+        .table-wrapper {
+
+            overflow-x: auto;
+        }
+
+
+        #attendance-history-table {
+
+            width: 100%;
+
+            border-collapse:
+                collapse;
+        }
+
+
+        #attendance-history-table th {
+
+            padding: 14px 18px;
+
+            text-align: left;
+
+            background: #f8fafc;
+
+            color: #4b5563;
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+            border-bottom:
+                1px solid #e5e7eb;
+        }
+
+
+        #attendance-history-table td {
+
+            padding: 15px 18px;
+
+            font-size: 14px;
+
+            border-bottom:
+                1px solid #f0f1f3;
+        }
+
+
+        #attendance-history-table
+        tbody tr:hover {
+
+            background: #f8fafc;
+        }
+
+
+        /* MOBILE */
+
+        @media (max-width: 700px) {
+
+            body {
+
+                padding:
+                    25px 18px;
+            }
+
+
+            .page-header {
+
+                flex-direction:
+                    column;
+
+                align-items:
+                    flex-start;
+
+                gap: 15px;
+            }
+
+
+            #attendance-filters {
+
+                flex-direction:
+                    column;
+
+                align-items:
+                    stretch;
+            }
+
+
+            #attendance-filters
+            select,
+            #view-attendance-button {
+
+                width: 100%;
+            }
+
+        }
+
+    </style>
+
+</head>
+
+
+<body>
+
+<div class="page-container">
+
+
+    <!-- HEADER -->
+
+    <div class="page-header">
+
+        <div>
+
+            <h1 class="page-title">
+                Attendance History
+            </h1>
+
+            <div class="page-subtitle">
+                View your attendance records
+            </div>
+
+        </div>
+
+
+        <button
+            type="button"
+            id="back-dashboard-button"
+        >
+            ← Employee Dashboard
+        </button>
+
+    </div>
+
+
+    <!-- FILTER CARD -->
+
+    <div class="filter-card">
+
+        <div class="filter-title">
+            Attendance Filter
+        </div>
+
+
+        <div id="attendance-filters">
+
+            <label for="attendance-year">
+                Year:
+            </label>
+
+            <select
+                id="attendance-year"
+            >
+
+                <option value="">
+                    Select Year
+                </option>
+
+            </select>
+
+
+            <label for="attendance-month">
+                Month:
+            </label>
+
+            <select
+                id="attendance-month"
+            >
+
+                <option value="">
+                    Select Month
+                </option>
+
+                <option value="01">
+                    January
+                </option>
+
+                <option value="02">
+                    February
+                </option>
+
+                <option value="03">
+                    March
+                </option>
+
+                <option value="04">
+                    April
+                </option>
+
+                <option value="05">
+                    May
+                </option>
+
+                <option value="06">
+                    June
+                </option>
+
+                <option value="07">
+                    July
+                </option>
+
+                <option value="08">
+                    August
+                </option>
+
+                <option value="09">
+                    September
+                </option>
+
+                <option value="10">
+                    October
+                </option>
+
+                <option value="11">
+                    November
+                </option>
+
+                <option value="12">
+                    December
+                </option>
+
+            </select>
+
+
+            <button
+                type="button"
+                id="view-attendance-button"
+            >
+                View Attendance
+            </button>
+
+        </div>
+
+
+        <p id="attendance-filter-message"></p>
+
+    </div>
+
+
+    <!-- ATTENDANCE TABLE -->
+
+    <div class="history-card">
+
+        <div class="history-card-title">
+            My Attendance
+        </div>
+
+
+        <div class="table-wrapper">
+
+            <table
+                id="attendance-history-table"
+            >
+
+                <thead>
+
+                    <tr>
+
+                        <th>
+                            Date
+                        </th>
+
+                        <th>
+                            Check In
+                        </th>
+
+                        <th>
+                            Check Out
+                        </th>
+
+                        <th>
+                            Status
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+                <tbody
+                    id="attendance-history-body"
+                >
+
+                    <tr>
+
+                        <td colspan="4">
+
+                            Select Year and Month
+                            to view attendance.
+
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+
+</div>
+
+
+<script src="/assets/hrms_assignment/js/attendance-history.js"></script>
+
+</body>
+
+</html>
