@@ -255,10 +255,17 @@ app_license = "mit"
 # ------------
 # List of apps whose translatable strings should be excluded from this app's translations.
 # ignore_translatable_strings_from = []
-
+ 
 extend_doctype_class = {
-    "Overtime Slip": "hrms_assignment.overrides.overtime_slip.CustomOvertimeSlip"
+    "Overtime Slip": "hrms_assignment.overrides.overtime_slip.CustomOvertimeSlip",
+    "Salary Slip": "hrms_assignment.payroll.professional_tax.CustomSalarySlip",
+    "Attendance": "hrms_assignment.overrides.attendance.CustomAttendance"
 }
+
+
+# extend_doctype_class = {
+#     "Overtime Slip": "hrms_assignment.overrides.overtime_slip.CustomOvertimeSlip"
+# }
 
 doctype_js = {
     "Overtime Slip": "public/js/overtime_slip.js"
